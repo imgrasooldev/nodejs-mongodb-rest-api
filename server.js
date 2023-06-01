@@ -1,4 +1,5 @@
 // server.js
+require("dotenv").config();
 const express = require("express");
 const bodyParser = require("body-parser");
 const authRoutes = require("./routes/authRoutes");
@@ -7,7 +8,7 @@ const database = require("./config/database");
 const seedUsers = require("./seeders/userSeeder");
 
 const app = express();
-const port = 3000;
+const port = process.env.SERVER_PORT;
 
 app.use(bodyParser.json());
 app.use("/api/auth", authRoutes);
