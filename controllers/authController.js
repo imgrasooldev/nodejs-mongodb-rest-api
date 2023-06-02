@@ -3,6 +3,7 @@ const bcrypt = require("bcrypt");
 const jwt = require("jsonwebtoken");
 const User = require("../models/User");
 const response = require("../helpers/response");
+const { sendRegisterEmail } = require("../emails/sendRegisterEmail");
 
 const register = async (req, res) => {
   try {
@@ -18,6 +19,8 @@ const register = async (req, res) => {
     await user.save();
 
     // Send registration email (implementation not provided)
+    await sendRegisterEmail(user.email, "Ghulam Rasool");
+
     // ...
 
     return response.success(res, "Registration successful");
