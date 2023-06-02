@@ -1,4 +1,6 @@
-const transporter = require("../config/emailService");
+const transporter = require("../config/emailServer");
+// const emailQueue = require("../queues/emailQueue");
+const CallQueue = require("../queues/emailQueue");
 
 // Function to send registration email
 const sendRegisterEmail = async (email, name) => {
@@ -25,5 +27,11 @@ const sendRegisterEmail = async (email, name) => {
     console.error("Error sending registration email:", error);
   }
 };
+
+// Process the email queue
+CallQueue.process(async (job) => {
+  const { email, name } = job.data;
+  await sendRegisterEmail(email, name);
+});
 
 module.exports = { sendRegisterEmail };

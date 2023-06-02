@@ -4,6 +4,7 @@ const jwt = require("jsonwebtoken");
 const User = require("../models/User");
 const response = require("../helpers/response");
 const { sendRegisterEmail } = require("../emails/sendRegisterEmail");
+const EmailQueue = require("./../queues/emailQueue");
 
 const register = async (req, res) => {
   try {
@@ -19,14 +20,17 @@ const register = async (req, res) => {
     await user.save();
 
     // Send registration email (implementation not provided)
-    await sendRegisterEmail(user.email, "Ghulam Rasool");
+    // await sendRegisterEmail(user.email, "Ghulam Rasool");
+    await EmailQueue.add(
+      { email: user.email, name: "Ghulam Rasool" },
+      { attempts: 2 }
+    );
 
     // ...
 
     return response.success(res, "Registration successful");
   } catch (error) {
-    console.error("Error in register:", error);
-    return response.error(res, "Registration failed");
+    return response.error(res, "Registration failed " + error.message);
   }
 };
 
