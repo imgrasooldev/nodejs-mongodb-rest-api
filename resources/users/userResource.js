@@ -2,6 +2,8 @@
 const userResource = (user) => {
   return {
     id: user._id,
+    uuid: user.uuid,
+    name: user.name,
     email: user.email,
     // Add other desired user properties
   };

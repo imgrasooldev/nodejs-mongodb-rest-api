@@ -17,9 +17,16 @@ const seedUsers = async (count) => {
       console.log("No users to seed.");
     }
   } catch (error) {
-    if (error.writeErrors) {
+    /* if (error.writeErrors) {
       console.error("User seeding error:", error.writeErrors);
     } else {
+      console.error("User seeding error:", error);
+    } */
+    if (error.writeErrors && error.writeErrors.length > 0) {
+      // Handle write errors if any
+      console.error("User seeding write errors:", error.writeErrors);
+    } else {
+      // Handle other errors
       console.error("User seeding error:", error);
     }
   } finally {
