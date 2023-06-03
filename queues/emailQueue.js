@@ -1,8 +1,15 @@
-// queues/emailQueue
+// queues/emailQueue.js
 const Queue = require("bull");
 const redis = require("../config/redisServer");
+const sendOTPEmail = require("../workers/sendOTPEmail");
+const sendRegisterEmail = require("../workers/sendRegisterEmail");
 
-// Create a queue for sending emails
-const EmailQueue = new Queue("email", { redis });
+const emailQueue = new Queue("email", { redis });
 
-module.exports = EmailQueue;
+// Process the sendOTPEmail job
+emailQueue.process("sendOTPEmail", sendOTPEmail);
+
+// Process the sendRegisterEmail job
+emailQueue.process("sendRegisterEmail", sendRegisterEmail);
+
+module.exports = emailQueue;

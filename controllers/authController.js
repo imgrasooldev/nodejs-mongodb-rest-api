@@ -2,9 +2,9 @@
 const bcrypt = require("bcrypt");
 const jwt = require("jsonwebtoken");
 const User = require("../models/User");
+const OTP = require("../models/Otp");
 const response = require("../helpers/response");
-const { sendRegisterEmail } = require("../emails/sendRegisterEmail");
-const EmailQueue = require("./../queues/emailQueue");
+const emailQueue = require("./../queues/emailQueue");
 const userResource = require("../resources/users/userResource");
 const { v4: uuidv4 } = require("uuid");
 
@@ -30,10 +30,15 @@ const register = async (req, res) => {
 
     // Send registration email (implementation not provided)
     // await sendRegisterEmail(user.email, "Ghulam Rasool");
-    await EmailQueue.add(
+    /*     await emailQueue.add(
       { email: user.email, name: user.name }
       // { attempts: 2 }
     );
+ */
+    await emailQueue.add("sendRegisterEmail", {
+      email: user.email,
+      name: user.name,
+    });
 
     return response.success(res, "Registration successful");
   } catch (error) {
@@ -65,9 +70,81 @@ const login = async (req, res) => {
       user: userResource(user),
     });
   } catch (error) {
-    console.error("Error in login:", error);
-    return response.error(res, "Login failed");
+    return response.error(res, "Login failed " + error.message);
   }
 };
 
-module.exports = { register, login };
+// Generate a random OTP
+const generateOTP = () => {
+  return Math.floor(100000 + Math.random() * 900000);
+};
+
+// Handle forgot password request
+const forgotPassword = async (req, res) => {
+  try {
+    const { email } = req.body;
+
+    // Find the user by email
+    const user = await User.findOne({ email });
+    if (!user) {
+      return res.status(404).json({ message: "User not found" });
+    }
+
+    // Generate OTP
+    const otp = generateOTP();
+
+    // Store OTP in the database
+    const newOTP = new OTP({
+      email,
+      otp,
+      expiresAt: Date.now() + 15 * 60 * 1000, // 15 minutes expiration
+    });
+    await newOTP.save();
+
+    // Queue email with OTP
+    await emailQueue.add("sendOTPEmail", {
+      email,
+      name: user.name,
+      otp,
+    });
+
+    // Respond with success message
+    return response.success(res, "Password reset email sent");
+  } catch (error) {
+    return response.error(res, "Password reset failed " + error.message);
+  }
+};
+
+const recoverPassword = async (req, res) => {
+  const { email, otp, newPassword } = req.body;
+
+  try {
+    // Check if OTP exists and has not expired
+    const storedOTP = await OTP.findOne({ email, otp });
+    if (!storedOTP || storedOTP.expiresAt < Date.now()) {
+      return res.status(400).json({ message: "Invalid OTP or expired" });
+    }
+
+    // Find the user by email
+    const user = await User.findOne({ email });
+    if (!user) {
+      return res.status(404).json({ message: "User not found" });
+    }
+
+    // Hash the new password
+    const hashedPassword = await bcrypt.hash(newPassword, 10);
+
+    // Update user's password
+    user.password = hashedPassword;
+    await user.save();
+
+    // Delete the OTP from the database
+    await OTP.deleteOne({ email, otp });
+
+    return response.success(res, "Password recovered successfully");
+  } catch (error) {
+    return response.error(res, "Password recovery failed " + error.message);
+  }
+};
+
+module.exports = { register, login, forgotPassword, recoverPassword };

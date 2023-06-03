@@ -1,7 +1,7 @@
 // validators/authValidator.js
 const { body, validationResult } = require("express-validator");
 
-const register = [
+const registerValidationRules = [
   body("name").notEmpty().withMessage("Name is required"),
   body("email").isEmail().withMessage("Invalid email"),
   body("password").isLength({ min: 6 }).withMessage("Password too short"),
@@ -27,7 +27,7 @@ const register = [
   },
 ];
 
-const login = [
+const loginValidationRules = [
   body("email").isEmail().withMessage("Invalid email"),
   body("password").isLength({ min: 6 }).withMessage("Password too short"),
   (req, res, next) => {
@@ -43,4 +43,23 @@ const login = [
   },
 ];
 
-module.exports = { register, login };
+// Forgot Password validation rules
+const forgotPasswordValidationRules = [
+  body("email").isEmail().withMessage("Invalid email address."),
+];
+
+// Recover Password validation rules
+const recoverPasswordValidationRules = [
+  body("email").isEmail().withMessage("Invalid email address."),
+  body("otp").notEmpty().withMessage("OTP is required."),
+  body("password")
+    .isLength({ min: 8 })
+    .withMessage("Password must be at least 8 characters long."),
+];
+
+module.exports = {
+  registerValidationRules,
+  loginValidationRules,
+  forgotPasswordValidationRules,
+  recoverPasswordValidationRules,
+};
