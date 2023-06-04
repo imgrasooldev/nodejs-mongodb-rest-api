@@ -1,5 +1,5 @@
 // server.js
-require("dotenv").config({ path: `.env.${process.env.NODE_ENV || "local"}` });
+require("./config/dotenvConfig");
 const express = require("express");
 const bodyParser = require("body-parser");
 const authRoutes = require("./routes/authRoutes");

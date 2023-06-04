@@ -30,11 +30,7 @@ const register = async (req, res) => {
 
     // Send registration email (implementation not provided)
     // await sendRegisterEmail(user.email, "Ghulam Rasool");
-    /*     await emailQueue.add(
-      { email: user.email, name: user.name }
-      // { attempts: 2 }
-    );
- */
+
     await emailQueue.add("sendRegisterEmail", {
       email: user.email,
       name: user.name,
