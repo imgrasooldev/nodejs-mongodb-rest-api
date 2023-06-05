@@ -21,4 +21,6 @@ router.put(
 ); // Update a user by ID
 router.delete("/users/:id", authenticate, userController.deleteUser); // Delete a user by ID
 
+router.get("/check_protected", authenticate, userController.checkProtected);
+
 module.exports = router;

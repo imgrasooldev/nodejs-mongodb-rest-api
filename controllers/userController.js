@@ -1,8 +1,10 @@
 // controllers/userController.js
 const User = require("../models/User");
 const response = require("../helpers/response");
+const { authenticateAndGetUserId } = require("../helpers/helpers");
 const userCollection = require("../resources/users/userCollection");
 const userResource = require("../resources/users/userResource");
+const jwt = require("jsonwebtoken");
 
 const getUsers = async (req, res) => {
   try {
@@ -85,4 +87,27 @@ const deleteUser = async (req, res) => {
   }
 };
 
-module.exports = { getUsers, getUserById, createUser, updateUser, deleteUser };
+const checkProtected = async (req, res) => {
+  try {
+    const userId = authenticateAndGetUserId(req);
+
+    if (!userId) {
+      return response.error(res, "Failed to authenticate users");
+    }
+
+    const user = await User.findById(userId);
+    const usersData = { user: userResource(user) };
+    return response.success(res, "Users retrieved successfully", usersData);
+  } catch (error) {
+    return response.error(res, "Failed to retrieve users");
+  }
+};
+
+module.exports = {
+  getUsers,
+  getUserById,
+  createUser,
+  updateUser,
+  deleteUser,
+  checkProtected,
+};
